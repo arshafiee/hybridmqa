@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!-- Meta tags for social media banners, these should be filled in appropriatly as they are your "business card" -->
+  <!-- Replace the content tag with appropriate information -->
+  <meta name="description" content="HybridMQA: Exploring Geometry-Texture Interactions for Colored Mesh Quality Assessment. Learn about our innovative approach to mesh quality assessment.">
+  <meta property="og:title" content="HybridMQA: Exploring Geometry-Texture Interactions for Colored Mesh Quality Assessment"/>
+  <meta property="og:description" content="Discover HybridMQA, a hybrid full-reference colored Mesh Quality Assessment framework that integrates model-based and projection-based approaches to capture complex interactions between textural information and 3D structures."/>
+  <meta property="og:url" content="https://yourwebsite.com"/>
+  <meta property="og:image" content="static/images/framework.png" />
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+  
+  <meta name="twitter:title" content="HybridMQA: Exploring Geometry-Texture Interactions for Colored Mesh Quality Assessment">
+  <meta name="twitter:description" content="Discover HybridMQA, a hybrid full-reference colored Mesh Quality Assessment framework that integrates model-based and projection-based approaches to capture complex interactions between textural information and 3D structures.">
+  <meta name="twitter:image" content="static/images/framework.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="keywords" content="HybridMQA, Mesh Quality Assessment, CVPR 2025, 3D Geometry, Geometry-Texture Interactions, Graph Learning, Feature Rendering, Computer Vision">
+
+
+  <title>HybridMQA</title>
+  <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+  rel="stylesheet">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script src="static/js/bulma-carousel.min.js"></script>
+  <script src="static/js/bulma-slider.min.js"></script>
+  <script src="static/js/index.js"></script>
+</head>
+<body>
+
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">HybridMQA: Exploring Geometry-Texture Interactions for Colored Mesh Quality Assessment</h1>
+            <div class="is-size-5 publication-authors">
+              <!-- Paper authors -->
+              <span class="author-block">
+                <a href="https://ca.linkedin.com/in/armin-shafiee" target="_blank">Armin Shafiee Sarvestani</a><sup>*</sup>,</span>
+                <span class="author-block">
+                  <a href="https://ca.linkedin.com/in/sheyang-tang-58435b145" target="_blank">Sheyang Tang</a><sup>*</sup>,</span>
+                  <span class="author-block">
+                    <a href="https://ece.uwaterloo.ca/~z70wang/" target="_blank">Zhou Wang</a>
+                  </span>
+                  </div>
+
+                  <div class="is-size-5 publication-authors">
+                    <span class="author-block">University of Waterloo, Canada<br>CVPR 2025</span>
+                    <span class="eql-cntrb"><small><br><sup>*</sup>Equal Contribution</small></span>
+                  </div>
+
+                  <div class="column has-text-centered">
+                    <div class="publication-links">
+                         <!-- Arxiv PDF link -->
+                      <span class="link-block">
+                        <a href="https://arxiv.org/pdf/2412.01986.pdf" target="_blank"
+                        class="external-link button is-normal is-rounded is-dark">
+                        <span class="icon">
+                          <i class="fas fa-file-pdf"></i>
+                        </span>
+                        <span>Paper</span>
+                      </a>
+                    </span>
+
+                    <!-- Supplementary PDF link -->
+                    <span class="link-block">
+                      <a href="https://arxiv.org/pdf/2412.01986.pdf" target="_blank"
+                      class="external-link button is-normal is-rounded is-dark">
+                      <span class="icon">
+                        <i class="fas fa-file-pdf"></i>
+                      </span>
+                      <span>Supplementary</span>
+                    </a>
+                  </span>
+
+                  <!-- Github link -->
+                  <span class="link-block">
+                    <a href="https://github.com/arshafiee/hybridmqa" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code</span>
+                  </a>
+                </span>
+
+                <!-- ArXiv abstract Link -->
+                <span class="link-block">
+                  <a href="https://arxiv.org/abs/2412.01986" target="_blank"
+                  class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Teaser video-->
+<!-- <section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+        <source src="static/videos/banner_video.mp4"
+        type="video/mp4">
+      </video>
+      <h2 class="subtitle has-text-centered">
+        Aliquam vitae elit ullamcorper tellus egestas pellentesque. Ut lacus tellus, maximus vel lectus at, placerat pretium mi. Maecenas dignissim tincidunt vestibulum. Sed consequat hendrerit nisl ut maximus. 
+      </h2>
+    </div>
+  </div>
+</section> -->
+<!-- End teaser video -->
+
+<!-- Main figure -->
+<section class="section hero">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <figure class="image is-centered">
+          <img src="static/images/framework.png" alt="Abstract Illustration">
+          <h2 class="subtitle figure-caption"> HybridMQA understands and judges visual quality of 3D meshes <br> by considering both their geometry and texture.
+          </h2>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End main figure -->
+
+<!-- Paper abstract -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Mesh quality assessment (MQA) models play a critical role in the design, optimization, and evaluation of mesh operation systems in a wide variety of applications. Current MQA models, whether model-based methods using topology-aware features or projection-based approaches working on rendered 2D projections, often fail to capture the intricate interactions between texture and 3D geometry. We introduce HybridMQA, a first-of-its-kind hybrid full-reference colored MQA framework that integrates model-based and projection-based approaches, capturing complex interactions between textural information and 3D structures for enriched quality representations. Our method employs graph learning to extract detailed 3D representations, which are then projected to 2D using a novel feature rendering process that precisely aligns them with colored projections. This enables the exploration of geometry-texture interactions via cross-attention, producing comprehensive mesh quality representations. Extensive experiments demonstrate HybridMQA’s superior performance across diverse datasets, highlighting its ability to effectively leverage geometry-texture interactions for a thorough understanding of mesh quality.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End paper abstract -->
+
+<!-- Motivation Figure -->
+<section class="section hero">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <figure class="image is-centered">
+          <img src="static/images/motivation.png" alt="Abstract Illustration">
+          <h2 class="subtitle figure-caption"> Our <b>main motivation</b>? We observed that geometry and texture interact in complex ways, affecting the visual quality of 3D meshes.
+          </h2>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End Motivation Figure -->
+
+<!-- Image carousel -->
+<section class="hero is-small is-light">
+  <div class="hero-body">
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+       <div class="item">
+        <!-- Your image here -->
+        <img src="static/images/GradCAM_1_1.png" alt="Visualization of GradCAM results on a 3D mesh"/>
+        <!-- <h2 class="subtitle has-text-centered">
+          First image description.
+        </h2> -->
+      </div>
+      <div class="item">
+        <!-- Your image here -->
+        <img src="static/images/GradCAM_1_1.png" alt="Visualization of GradCAM results on a 3D mesh"/>
+        <!-- <h2 class="subtitle has-text-centered">
+          Second image description.
+        </h2> -->
+      </div>
+      <div class="item">
+        <!-- Your image here -->
+        <img src="static/images/GradCAM_1_1.png" alt="Visualization of GradCAM results on a 3D mesh"/>
+        <!-- <h2 class="subtitle has-text-centered">
+         Third image description.
+       </h2> -->
+     </div>
+     <div class="item">
+      <!-- Your image here -->
+      <img src="static/images/GradCAM_1_1.png" alt="Visualization of GradCAM results on a 3D mesh"/>
+      <!-- <h2 class="subtitle has-text-centered">
+        Fourth image description.
+      </h2> -->
+    </div>
+  </div>
+  <h2 class="subtitle figure-caption"> HybridMQA understands 3D geometry and attends to regions with geometric distortions 
+    to judge the perceptual quality of 3D meshes.
+  </h2>
+</div>
+</div>
+</section>
+<!-- End image carousel -->
+
+
+<!-- Image carousel 2 -->
+<section class="hero is-small">
+  <div class="hero-body">
+    <div class="container">
+      <div id="results-carousel" class="carousel results-carousel">
+       <div class="item">
+        <!-- Your image here -->
+        <img src="static/images/GradCAM_1_1.png" alt="Visualization of GradCAM results on a 3D mesh"/>
+        <!-- <h2 class="subtitle has-text-centered">
+          First image description.
+        </h2> -->
+      </div>
+      <div class="item">
+        <!-- Your image here -->
+        <img src="static/images/GradCAM_1_1.png" alt="Visualization of GradCAM results on a 3D mesh"/>
+        <!-- <h2 class="subtitle has-text-centered">
+          Second image description.
+        </h2> -->
+      </div>
+      <div class="item">
+        <!-- Your image here -->
+        <img src="static/images/GradCAM_1_1.png" alt="Visualization of GradCAM results on a 3D mesh"/>
+        <!-- <h2 class="subtitle has-text-centered">
+         Third image description.
+       </h2> -->
+     </div>
+     <div class="item">
+      <!-- Your image here -->
+      <img src="static/images/GradCAM_1_1.png" alt="Visualization of GradCAM results on a 3D mesh"/>
+      <!-- <h2 class="subtitle has-text-centered">
+        Fourth image description.
+      </h2> -->
+    </div>
+  </div>
+  <h2 class="subtitle figure-caption"> HybridMQA understands 3D geometry and attends to regions with geometric distortions 
+    to judge the perceptual quality of 3D meshes.
+  </h2>
+</div>
+</div>
+</section>
+<!-- End image carousel -->
+
+
+
+<!-- Youtube video -->
+<!-- <section class="hero is-small is-light">
+  <div class="hero-body">
+    <div class="container">
+      <h2 class="title is-3">Video Presentation</h2>
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          
+          <div class="publication-video">
+            <iframe src="https://www.youtube.com/embed/JkaxUblCGz0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section> -->
+<!-- End youtube video -->
+
+
+<!-- Video carousel -->
+<!-- <section class="hero is-small">
+  <div class="hero-body">
+    <div class="container">
+      <h2 class="title is-3">Another Carousel</h2>
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item item-video1">
+          <video poster="" id="video1" autoplay controls muted loop height="100%">
+            <source src="static/videos/carousel1.mp4"
+            type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-video2">
+          <video poster="" id="video2" autoplay controls muted loop height="100%">
+            <source src="static/videos/carousel2.mp4"
+            type="video/mp4">
+          </video>
+        </div>
+        <div class="item item-video3">
+          <video poster="" id="video3" autoplay controls muted loop height="100%">\
+            <source src="static/videos/carousel3.mp4"
+            type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+  </div>
+</section> -->
+<!-- End video carousel -->
+
+
+
+
+
+
+<!-- Paper poster -->
+<!-- <section class="hero is-small is-light">
+  <div class="hero-body">
+    <div class="container">
+      <h2 class="title">Poster</h2>
+
+      <iframe  src="static/pdfs/sample.pdf" width="100%" height="550">
+          </iframe>
+        
+      </div>
+    </div>
+  </section> -->
+<!--End paper poster -->
+
+
+<!--BibTex citation -->
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre><code>@article{sarvestani2024hybridmqa,
+    title={HybridMQA: Exploring Geometry-Texture Interactions for Colored Mesh Quality Assessment},
+    author={Sarvestani, Armin Shafiee and Tang, Sheyang and Wang, Zhou},
+    journal={arXiv preprint arXiv:2412.01986},
+    year={2024}
+}</code></pre>
+    </div>
+</section>
+<!--End BibTex citation -->
+
+
+  <footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+
+          <p>
+            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+            You are free to borrow the source code of this website, we just ask that you link back to this page in the footer. <br> This website is licensed under a <a rel="license"  href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+            <br><br>
+            <a href="https://www.flaticon.com/free-icons/art-and-design" title="art and design icons">Art and design icons created by Freepik - Flaticon</a>
+          </p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Statcounter tracking code -->
+  
+<!-- You can add a tracker to track page visits by creating an account at statcounter.com -->
+
+    <!-- End of Statcounter Code -->
+
+  </body>
+  </html>
