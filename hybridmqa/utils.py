@@ -301,10 +301,9 @@ def render_projections(
     num_proj: int,
     training: bool,
     img_size: int = 256,
-    rgb_only: bool = False,
     angle_aug: bool = False,
     dataset: str = 'YN2023'
-) -> List[Optional[torch.Tensor]]:
+) -> List[torch.Tensor]:
     """
     Renders both RGB and feature projections for a batch of 3D meshes from multiple viewpoints.
 
@@ -314,14 +313,13 @@ def render_projections(
         num_proj (int): Number of viewpoints per mesh.
         training (bool): Whether in training mode (enables random viewpoint sampling and augmentation).
         img_size (int, optional): Image size for RGB projections. Defaults to 256.
-        rgb_only (bool, optional): If True, only render RGB projections. Defaults to False.
         angle_aug (bool, optional): If True, apply Gaussian noise to camera angles for augmentation. Defaults to False.
         dataset (str, optional): Dataset identifier used to choose lighting scheme. Defaults to 'YN2023'.
 
     Returns:
-        List[Optional[torch.Tensor]]: A list containing:
+        List[torch.Tensor]: A list containing:
             - Tensor of shape [B, num_proj, H, W, 4] for RGB projections (RGBA).
-            - Tensor of shape [B, num_proj, H', W', C] for feature projections (None if `rgb_only` is True).
+            - Tensor of shape [B, num_proj, H', W', C] for feature projections.
     """
     if training:
         # augmentation on viewpoint selections
@@ -357,19 +355,16 @@ def render_projections(
     #     plot_projections(mesh_proj, rows=2, cols=3)
 
     # shape [batch_size, num_projections, H, W, feature_dim]
-    if rgb_only:
-        feature_projections = None
-    else:
-        feat_size = 512 // 4 if img_size > 512 else img_size // 4
-        feature_projections = render_feature_projections(
-            batch_graph=batch_graph,
-            batch_mesh_data=batch_mesh_data,
-            img_size=feat_size,
-            num_proj=num_proj,
-            elev=elev,
-            azim=azim,
-            dist=dist
-        )
+    feat_size = 512 // 4 if img_size > 512 else img_size // 4
+    feature_projections = render_feature_projections(
+        batch_graph=batch_graph,
+        batch_mesh_data=batch_mesh_data,
+        img_size=feat_size,
+        num_proj=num_proj,
+        elev=elev,
+        azim=azim,
+        dist=dist
+    )
     # visually verify validity of projections
     # for mesh_proj in feature_projections:
     #     plot_projections(mesh_proj, rows=2, cols=3)
@@ -675,9 +670,8 @@ def patchify_and_generate_mask(
     patch_size: int,
     background_intensity: float = 0.0,
     nonempty_ratio: float = 0.01,
-    stride_ratio: float = 1.0,
-    rgb_only: bool = False
-) -> Tuple[Tuple[torch.Tensor, Optional[torch.Tensor]], Optional[torch.Tensor], torch.Tensor, torch.Tensor]:
+    stride_ratio: float = 1.0
+) -> Tuple[Tuple[torch.Tensor, torch.Tensor], torch.Tensor, torch.Tensor]:
     """
     Patchifies both rgb and feature projections, generates their bakground mask
     and discards empty patches.
@@ -690,12 +684,10 @@ def patchify_and_generate_mask(
         background_intensity (float, optional): background intensity values. Defaults to 0.0.
         nonempty_ratio (float, optional): threshold ratio to consider a patch as nonempty. Defaults to 0.01.
         stride_ratio (float, optional): stride ratio for unfolding (patchifying) operation. Defaults to 1.0.
-        rgb_only (bool, optional): only use rgb features. Defaults to False.
 
     Returns:
         Tuple[
-            Tuple[torch.Tensor, Optional[torch.Tensor]],   # (patched RGB, patched features or None)
-            Optional[torch.Tensor],                        # feature patch differences or None
+            Tuple[torch.Tensor, torch.Tensor]],            # (patched RGB, patched features)
             torch.Tensor,                                  # non-empty patch indicator: [N*P, num_patches]
             torch.Tensor                                   # background mask: [num_nonempty_patches, Ps, Ps, 1]
         ]
@@ -703,24 +695,19 @@ def patchify_and_generate_mask(
     # reshape projections
     N, P, H, W, C1 = projections[0].shape
     rgb_proj = projections[0].view(N * P, H, W, C1).permute(0, 3, 1, 2)  # output shape = [N*P, C1, H, W]
-    if not rgb_only:
-        N, P, H, W, C2 = projections[1].shape
-        feature_proj = projections[1].view(N * P, H, W, C2).permute(0, 3, 1, 2)  # output shape = [N*P, C2, H, W]
+    N, P, H, W, C2 = projections[1].shape
+    feature_proj = projections[1].view(N * P, H, W, C2).permute(0, 3, 1, 2)  # output shape = [N*P, C2, H, W]
 
     # patchify projections
     unfold = torch.nn.Unfold(kernel_size=patch_size, stride=int(patch_size * stride_ratio))
     # output shape = [N*P, num_patches, C1, Ps, Ps]
     patch_rgb_proj = unfold(rgb_proj).view(N * P, C1, patch_size, patch_size, -1).permute(0, 4, 1, 2, 3)
     num_patches = patch_rgb_proj.shape[1]
-    if not rgb_only:
-        fpatch_size = patch_size // 4
-        funfold = torch.nn.Unfold(kernel_size=fpatch_size, stride=int(fpatch_size * stride_ratio))
-        # output shape = [N*P, num_patches, C2, Ps, Ps]
-        patch_feature_proj = funfold(feature_proj).view(N * P, C2, fpatch_size, fpatch_size, -1).permute(0, 4, 1, 2, 3)
-        patch_feature_diff = patch_feature_proj.view(N, P, num_patches, C2, fpatch_size, fpatch_size)
-        patch_feature_diff = torch.abs(patch_feature_diff[::2, ...] - patch_feature_diff[1::2, ...])
-        patch_feature_diff = patch_feature_diff.repeat_interleave(repeats=2, dim=0)
-        patch_feature_diff = patch_feature_diff.view(N * P, num_patches, C2, fpatch_size, fpatch_size)
+
+    fpatch_size = patch_size // 4
+    funfold = torch.nn.Unfold(kernel_size=fpatch_size, stride=int(fpatch_size * stride_ratio))
+    # output shape = [N*P, num_patches, C2, Ps, Ps]
+    patch_feature_proj = funfold(feature_proj).view(N * P, C2, fpatch_size, fpatch_size, -1).permute(0, 4, 1, 2, 3)
 
     # generate mask
     # output shape = [N*P, num_patches, Ps, Ps]
@@ -747,56 +734,51 @@ def patchify_and_generate_mask(
     # discard empty patches
     # output shape = [num_nonempty_patches, Ps, Ps, C1]
     patch_rgb_proj = patch_rgb_proj[nonempty_patches, :, :, :].permute(0, 2, 3, 1)
-    if not rgb_only:
-        # output shape = [num_nonempty_patches, Ps, Ps, C2]
-        patch_feature_proj = patch_feature_proj[nonempty_patches, :, :, :].permute(0, 2, 3, 1)
-        patch_feature_diff = patch_feature_diff[nonempty_patches, :, :, :].permute(0, 2, 3, 1)
-    else:
-        patch_feature_proj = None
-        patch_feature_diff = None
+    # output shape = [num_nonempty_patches, Ps, Ps, C2]
+    patch_feature_proj = patch_feature_proj[nonempty_patches, :, :, :].permute(0, 2, 3, 1)
     # patch_background_mask = background_mask[nonempty_patches, :, :]  # output shape = [num_nonempty_patches, Ps, Ps]
 
     # verification
     # for proj_idx in range(0, 24):
-        # if proj_idx % 6 == 0:
-        #     plt.figure()
-        #     plt.imshow(projections[0][0, proj_idx, :, :, :3].cpu().squeeze().detach())
-        #     plt.savefig(f'dummy_1_{proj_idx}.png')
+    #     if proj_idx % 6 == 0:
+    #         plt.figure()
+    #         plt.imshow(projections[0][0, proj_idx, :, :, :3].cpu().squeeze().detach())
+    #         plt.savefig(f'dummy_1_{proj_idx}.png')
 
-        #     plt.figure()
-        #     plt.imshow(projections[0][1, proj_idx, :, :, :3].cpu().squeeze().detach())
-        #     plt.savefig(f'dummy_2_{proj_idx}.png')
+    #         plt.figure()
+    #         plt.imshow(projections[0][1, proj_idx, :, :, :3].cpu().squeeze().detach())
+    #         plt.savefig(f'dummy_2_{proj_idx}.png')
 
-        #     plt.figure()
-        #     abs_feat_diff = patch_feature_diff[0, proj_idx, :, :, :3])
-        #     plt.imshow(convert_range(abs_feat_diff.cpu().squeeze().detach()))
-        #     plt.savefig(f'dummy_3_{proj_idx}.png')
+    #         plt.figure()
+    #         abs_feat_diff = patch_feature_diff[0, proj_idx, :, :, :3])
+    #         plt.imshow(convert_range(abs_feat_diff.cpu().squeeze().detach()))
+    #         plt.savefig(f'dummy_3_{proj_idx}.png')
 
-        # sum_mat = torch.sum(nonempty_patches, dim=-1)
-        # low_range = high_range if proj_idx > 0 else 0
-        # high_range = low_range + sum_mat[proj_idx].item()
-        # plt.figure()
-        # for img_idx, patch_idx in enumerate(range(low_range, high_range)):
-        #     plt.subplot(4, 4, img_idx + 1)
-        #     plt.imshow(patch_rgb_proj[patch_idx, :, :, :3].cpu().squeeze().detach())
-        # plt.savefig(f'dummy_1.png')
+    #     sum_mat = torch.sum(nonempty_patches, dim=-1)
+    #     low_range = high_range if proj_idx > 0 else 0
+    #     high_range = low_range + sum_mat[proj_idx].item()
+    #     plt.figure()
+    #     for img_idx, patch_idx in enumerate(range(low_range, high_range)):
+    #         plt.subplot(4, 4, img_idx + 1)
+    #         plt.imshow(patch_rgb_proj[patch_idx, :, :, :3].cpu().squeeze().detach())
+    #     plt.savefig(f'dummy_1.png')
 
-        # plt.figure()
-        # for img_idx, patch_idx in enumerate(range(low_range, high_range)):
-        #     plt.subplot(4, 4, img_idx + 1)
-        #     plt.imshow(patch_feature_diff[patch_idx, :, :, :3].cpu().squeeze().detach())
-        # plt.savefig(f'dummy_2.png')
+    #     plt.figure()
+    #     for img_idx, patch_idx in enumerate(range(low_range, high_range)):
+    #         plt.subplot(4, 4, img_idx + 1)
+    #         plt.imshow(patch_feature_diff[patch_idx, :, :, :3].cpu().squeeze().detach())
+    #     plt.savefig(f'dummy_2.png')
 
-        # plt.figure()
-        # for img_idx, patch_idx in enumerate(range(low_range, high_range)):
-        #     plt.subplot(4, 4, img_idx + 1)
-        #     plt.imshow(patch_background_mask[patch_idx, ...].cpu().squeeze().detach())
-        # plt.savefig(f'dummy_3_{proj_idx}.png')
-        # plt.show()
+    #     plt.figure()
+    #     for img_idx, patch_idx in enumerate(range(low_range, high_range)):
+    #         plt.subplot(4, 4, img_idx + 1)
+    #         plt.imshow(patch_background_mask[patch_idx, ...].cpu().squeeze().detach())
+    #     plt.savefig(f'dummy_3_{proj_idx}.png')
+    #     plt.show()
 
     # torch.cuda.empty_cache()
 
-    return ((patch_rgb_proj, patch_feature_proj), patch_feature_diff, nonempty_patches, background_mask)
+    return ((patch_rgb_proj, patch_feature_proj), nonempty_patches, background_mask)
 
 
 def pool_patch_features(
@@ -804,8 +786,7 @@ def pool_patch_features(
     num_proj: int,
     reg_feat: torch.Tensor,
     graph_feat: torch.Tensor,
-    nonempty_patches: torch.Tensor,
-    multilayer: bool
+    nonempty_patches: torch.Tensor
 ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
     """
     pools per-model regressor and graph features
@@ -820,12 +801,11 @@ def pool_patch_features(
             of shape [num_nonempty_patches, graph_feat_out_dim]
         nonempty_patches (torch.Tensor): non-empty patch indicator tensor
             of shape [N*P, num_patches]
-        multilayer (bool): whether to use multilayer features in training. If True, graph features will also be pooled.
 
     Returns:
-        Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        Tuple[torch.Tensor, torch.Tensor]:
             - Pooled regressor features of shape [N, regressor_out_dim].
-            - Pooled graph features of shape [N, graph_feat_out_dim] or None if `multilayer` is False.
+            - Pooled graph features of shape [N, graph_feat_out_dim].
     """
     # find patch index boundries for each model
     per_sample_patchmap = torch.sum(nonempty_patches.view(N, num_proj, nonempty_patches.shape[1]), dim=(-1, -2))
@@ -833,65 +813,58 @@ def pool_patch_features(
 
     # average patch features - first model
     pooled_reg_feat = torch.mean(reg_feat[0:patch_boundries[0], :], dim=0, keepdim=True)
-    pooled_graph_feat = torch.mean(graph_feat[0:patch_boundries[0], :], dim=0, keepdim=True) if multilayer else None
+    pooled_graph_feat = torch.mean(graph_feat[0:patch_boundries[0], :], dim=0, keepdim=True)
     # average patch features - other models
     for idx, up_bound in enumerate(patch_boundries[1:]):
         low_bound = patch_boundries[idx]
         model_reg_feat = torch.mean(reg_feat[low_bound:up_bound, :], dim=0, keepdim=True)
         pooled_reg_feat = torch.cat((pooled_reg_feat, model_reg_feat), dim=0)
-        model_graph_feat = torch.mean(graph_feat[low_bound:up_bound, :], dim=0, keepdim=True) if multilayer else None
-        pooled_graph_feat = torch.cat((pooled_graph_feat, model_graph_feat), dim=0) if multilayer else None
+        model_graph_feat = torch.mean(graph_feat[low_bound:up_bound, :], dim=0, keepdim=True)
+        pooled_graph_feat = torch.cat((pooled_graph_feat, model_graph_feat), dim=0)
 
     return pooled_reg_feat, pooled_graph_feat
 
 
 def apply_hflip_and_vflip(
-    projections: Tuple[torch.Tensor, Optional[torch.Tensor]],
-    feat_render_diff: Optional[torch.Tensor],
+    projections: Tuple[torch.Tensor, torch.Tensor],
     bg_mask: torch.Tensor,
     p: float = 0.5
-) -> Tuple[Tuple[torch.Tensor, Optional[torch.Tensor]], Optional[torch.Tensor], torch.Tensor]:
+) -> Tuple[Tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
     """
     Applies Horizontal and Vertical Flip Augmentations (including the randomization)
     to inputs.
 
     Args:
-        projections (Tuple[torch.Tensor, Optional[torch.Tensor]]): Tuple containing:
+        projections (Tuple[torch.Tensor, torch.Tensor]): Tuple containing:
             - RGB projections of shape [N, Ps, Ps, C1]
             - Feature projections of shape [N, Ps//4, Ps//4, C2], or None
-        feat_render_diff (Optional[torch.Tensor]): Feature differences of shape [N, Ps//4, Ps//4, C2], or None.
         bg_mask (torch.Tensor): Background mask of shape [N, Ps, Ps, 1].
         p (float, optional): Probability of applying each flip. Defaults to 0.5.
 
     Returns:
         Tuple:
-            - Tuple[torch.Tensor, Optional[torch.Tensor]]: Flipped RGB and feature projections.
-            - Optional[torch.Tensor]: Flipped feature differences.
+            - Tuple[torch.Tensor, torch.Tensor]: Flipped RGB and feature projections.
             - torch.Tensor: Flipped background mask.
     """
     rgb = projections[0].permute(0, 3, 1, 2)  # shape [N, C1, Ps, Ps]
     bg_mask = bg_mask.permute(0, 3, 1, 2)  # shape [N, 1, Ps, Ps]
-    feat = projections[1].permute(0, 3, 1, 2) if projections[1] is not None else None
-    feat_render_diff = feat_render_diff.permute(0, 3, 1, 2) if feat_render_diff is not None else None
+    feat = projections[1].permute(0, 3, 1, 2)
     # hflip
     if torch.rand(1) < p:
         rgb = hflip(rgb)
         bg_mask = hflip(bg_mask)
-        feat = hflip(feat) if feat is not None else None
-        feat_render_diff = hflip(feat_render_diff) if feat_render_diff is not None else None
+        feat = hflip(feat)
     # vflip
     if torch.rand(1) < p:
         rgb = vflip(rgb)
         bg_mask = vflip(bg_mask)
-        feat = vflip(feat) if feat is not None else None
-        feat_render_diff = vflip(feat_render_diff) if feat_render_diff is not None else None
+        feat = vflip(feat)
     rgb = rgb.permute(0, 2, 3, 1)  # shape [num_nonempty_patches, Ps, Ps, C1]
     bg_mask = bg_mask.permute(0, 2, 3, 1)  # shape [num_nonempty_patches, Ps, Ps, 1]
-    feat = feat.permute(0, 2, 3, 1) if feat is not None else None
-    feat_render_diff = feat_render_diff.permute(0, 2, 3, 1) if feat_render_diff is not None else None
+    feat = feat.permute(0, 2, 3, 1)
     projections = [rgb, feat]
 
-    return projections, feat_render_diff, bg_mask
+    return projections, bg_mask
 
 
 class RankLoss(torch.nn.Module):
