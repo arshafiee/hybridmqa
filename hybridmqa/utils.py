@@ -211,8 +211,6 @@ def render_rgb_projections(
         # means more memory usage for rendering
         raster_settings.max_faces_per_bin = num_faces // 2 if num_faces >= 23000 else None
         images = renderer(meshes, raster_settings=raster_settings)  # shape [num_projections, H, W, 4], 4:RGBA
-        if img_size > 512:
-            images = F.interpolate(images.permute(0, 3, 1, 2), size=(512, 512), mode='area').permute(0, 2, 3, 1)
         list_images.append(images)
 
     return torch.stack(list_images, dim=0)  # shape [batch_size, num_projections, H, W, 4], 4:RGBA
@@ -355,7 +353,7 @@ def render_projections(
     #     plot_projections(mesh_proj, rows=2, cols=3)
 
     # shape [batch_size, num_projections, H, W, feature_dim]
-    feat_size = 512 // 4 if img_size > 512 else img_size // 4
+    feat_size = img_size // 4
     feature_projections = render_feature_projections(
         batch_graph=batch_graph,
         batch_mesh_data=batch_mesh_data,

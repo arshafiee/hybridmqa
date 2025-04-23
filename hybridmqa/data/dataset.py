@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Type
 
 import numpy as np
 import pandas as pd
@@ -514,3 +514,53 @@ def custom_collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
         'score': score_batch,
         'names': names
     }
+
+
+DATASET_REGISTRY: Dict[str, Type[Dataset]] = {
+        'TMQA': TMQADataset,
+        'YN2023': YN2023Dataset,
+        'VCMesh': VCMeshDataset,
+        'TSMD': TSMDDataset,
+    }
+
+
+class DatasetBuilder:
+    """
+    A  builder for loading supported datasets based on a name identifier.
+
+    Supported names:
+        - 'TMQA'
+        - 'YN2023'
+        - 'VCMesh'
+        - 'TSMD'
+
+    Example:
+        >>> dataset = DatasetBuilder.build(
+        >>>     name='TMQA',
+        >>>     root_dir='/path/to/data',
+        >>>     split='train',
+        >>>     normalize_score=True,
+        >>>     seed=0,
+        >>>     kfold_seed=1
+        >>> )
+    """
+
+    @staticmethod
+    def build(name: str, **kwargs: Any) -> Dataset:
+        """
+        Builds and returns a dataset instance using the name identifier.
+
+        Args:
+            name (str): Name of the dataset (case-sensitive).
+            **kwargs: All additional keyword arguments passed to the dataset constructor.
+
+        Returns:
+            Dataset: An instance of the selected dataset class.
+
+        Raises:
+            ValueError: If the dataset name is not supported.
+        """
+        dataset_cls = DATASET_REGISTRY.get(name)
+        if dataset_cls is None:
+            raise ValueError(f"Unsupported dataset name '{name}'. Available options: {list(DATASET_REGISTRY.keys())}")
+        return dataset_cls(**kwargs)

@@ -23,14 +23,12 @@ class BaseEncoder(nn.Module):
         out_channels (int): Number of output channels after encoding.
         input_maps (str, optional): Specifies which input maps to use.
                 Options: 'norm_ver', 'norm', 'tex_norm', 'tex_ver', 'all'. Defaults to 'all'.
-        residual_inputs (bool, optional): If True, concatenates input to encoder output. Defaults to False.
     """
     def __init__(
         self,
         hidden_channels: int,
         out_channels: int,
         input_maps: str = 'all',
-        residual_inputs: bool = False
     ) -> None:
         super(BaseEncoder, self).__init__()
         input_ch_dict = {'norm_ver': 6, 'norm': 3, 'tex_norm': 6, 'tex_ver': 6, 'all': 9}
@@ -41,8 +39,6 @@ class BaseEncoder(nn.Module):
         self.enc_in_channels = input_ch_dict[self.input_maps]
         self.conv1 = ConvBlock(in_channels=self.enc_in_channels, out_channels=out_channels,
                                hidden_channels=hidden_channels, residual=False)
-        self.residual_inputs = residual_inputs
-        self.enc_out_channels = out_channels + self.enc_in_channels if self.residual_inputs else out_channels
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -66,7 +62,6 @@ class BaseEncoder(nn.Module):
             x_in = x
 
         out = self.conv1(x_in)
-        out = torch.cat((out, x_in), dim=1) if self.residual_inputs else out
 
         return out
 
