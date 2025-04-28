@@ -148,7 +148,7 @@ def render_rgb_projections(
     num_proj: int,
     elev: torch.Tensor,
     azim: torch.Tensor,
-    dataset: str,
+    lighting: str,
     dist: float
 ) -> torch.Tensor:
     """
@@ -160,7 +160,7 @@ def render_rgb_projections(
         num_proj (int): Number of viewpoints to render per mesh.
         elev (torch.Tensor): Tensor of shape [num_proj] specifying elevation angles.
         azim (torch.Tensor): Tensor of shape [num_proj] specifying azimuth angles.
-        dataset (str): Dataset identifier used to choose lighting scheme.
+        lighting (str): Lighting scheme, either 'directional' or 'ambient'.
         dist (float): Distance from camera to object.
 
     Returns:
@@ -172,7 +172,7 @@ def render_rgb_projections(
     R, T = look_at_view_transform(dist=dist, elev=elev, azim=azim)
     cameras = FoVPerspectiveCameras(device=device, R=R, T=T)
 
-    if dataset in ['YN2023', 'VCMesh']:
+    if lighting == 'directional':
         light_direction_camera = torch.tensor([[-1.0], [1.0], [-1.0]])  # top-right-out
         light_directions = torch.matmul(R, light_direction_camera).squeeze()
         lights = DirectionalLights(
@@ -182,8 +182,10 @@ def render_rgb_projections(
             direction=light_directions,
             device=device
         )
-    elif dataset in ['TMQA', 'TSMD']:
+    elif lighting == 'ambient':
         lights = AmbientLights(ambient_color=(1.0, 1.0, 1.0), device=device)
+    else:
+        raise ValueError(f"Unknown lighting scheme: {lighting}. Use 'directional' or 'ambient' or implement your own.")
 
     raster_settings = RasterizationSettings(
         image_size=img_size,
@@ -300,7 +302,7 @@ def render_projections(
     training: bool,
     img_size: int = 256,
     angle_aug: bool = False,
-    dataset: str = 'YN2023'
+    lighting: str = 'directional'
 ) -> List[torch.Tensor]:
     """
     Renders both RGB and feature projections for a batch of 3D meshes from multiple viewpoints.
@@ -312,7 +314,7 @@ def render_projections(
         training (bool): Whether in training mode (enables random viewpoint sampling and augmentation).
         img_size (int, optional): Image size for RGB projections. Defaults to 256.
         angle_aug (bool, optional): If True, apply Gaussian noise to camera angles for augmentation. Defaults to False.
-        dataset (str, optional): Dataset identifier used to choose lighting scheme. Defaults to 'YN2023'.
+        lighting (str, optional): Lighting scheme, either 'directional' or 'ambient'. Defaults to 'directional'.
 
     Returns:
         List[torch.Tensor]: A list containing:
@@ -345,7 +347,7 @@ def render_projections(
         num_proj=num_proj,
         elev=elev,
         azim=azim,
-        dataset=dataset,
+        lighting=lighting,
         dist=dist
     )
     # visually verify validity of projections

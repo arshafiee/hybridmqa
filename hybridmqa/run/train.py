@@ -99,6 +99,12 @@ def main():
     ).to(device)
     # create HybridMQA model
     fc_input_dim = args.gnn_ch[1] + 5 * args.reg_ch[1]
+    if args.dataset in ['YN2023', 'VCMesh']:
+        lighting = 'directional'
+    elif args.dataset in ['TMQA', 'TSMD']:
+        lighting = 'ambient'
+    else:
+        raise ValueError(f"Unknown dataset: {args.dataset} for the purpose of lighting selection.")
     model = HybridMQA(
         base_enc=base_enc,
         gnn=gnn,
@@ -107,7 +113,8 @@ def main():
         img_size=args.img_size,
         num_proj=args.num_proj,
         angle_aug=args.ang_aug,
-        dataset=args.dataset
+        lighting=lighting,
+        vcmesh=args.dataset == 'VCMesh'
     ).to(device)
 
     # log model summary

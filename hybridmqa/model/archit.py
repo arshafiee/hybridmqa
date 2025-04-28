@@ -247,7 +247,8 @@ class HybridMQA(nn.Module):
         img_size (int, optional): Image size for rendering. Defaults to 512.
         num_proj (int, optional): Number of projections per mesh. Defaults to 6.
         angle_aug (bool, optional): Enable angle augmentation during training. Defaults to False.
-        dataset (str, optional): Dataset name used for lighting configurations. Defaults to 'YN2023'.
+        lighting (str, optional): Lighting scheme, either 'directional' or 'ambient'. Defaults to 'directional'.
+        vcmesh (bool, optional): If True, assumes the mesh is a vertex-color mesh (not textured). Defaults to False.
     """
     def __init__(
         self,
@@ -258,7 +259,8 @@ class HybridMQA(nn.Module):
         img_size: int = 512,
         num_proj: int = 6,
         angle_aug: bool = False,
-        dataset: str = 'YN2023'
+        lighting: str = 'directional',
+        vcmesh: bool = False,
     ) -> None:
         super(HybridMQA, self).__init__()
         self.base_enc = base_enc
@@ -267,8 +269,8 @@ class HybridMQA(nn.Module):
         self.img_size = img_size
         self.num_proj = num_proj
         self.angle_aug = angle_aug
-        self.dataset = dataset
-        self.vcmesh = self.dataset == 'VCMesh'
+        self.lighting = lighting
+        self.vcmesh = vcmesh
 
         # register regression and classification heads
         self.reg_head = nn.Sequential(
@@ -305,7 +307,7 @@ class HybridMQA(nn.Module):
             img_size=self.img_size,
             training=self.training,
             angle_aug=self.angle_aug,
-            dataset=self.dataset
+            lighting=self.lighting
         )
         # run quality encoder
         x_feat_out = self.quality_enc(projections)
