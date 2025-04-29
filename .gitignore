@@ -3,3 +3,4 @@ docs/static/.DS_Store
 venv/
 .vscode/
 *.egg-info/
+__pycache__/
