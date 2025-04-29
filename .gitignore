@@ -2,3 +2,4 @@ docs/static/.DS_Store
 .DS_Store
 venv/
 .vscode/
+*.egg-info/
