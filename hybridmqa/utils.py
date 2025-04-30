@@ -378,7 +378,7 @@ def render_projections(
 
 def send_dict_tensors_to_device(
     dict_of_tns: Dict,
-    device: torch.Device
+    device: torch.device
 ) -> Dict:
     """
     Transfers all tensors in a dictionary to the specified device.
@@ -433,7 +433,6 @@ def accumulate_step_outputs(
     sample_batched: Dict,
     reg_loss: torch.Tensor,
     rank_loss: torch.Tensor,
-    cls_loss: torch.Tensor,
     loss: torch.Tensor
 ) -> Dict:
     """
@@ -447,7 +446,6 @@ def accumulate_step_outputs(
         sample_batched (Dict): Dictionary containing the ground-truth target scores.
         reg_loss (torch.Tensor): Regression loss for the batch.
         rank_loss (torch.Tensor): Ranking loss for the batch.
-        cls_loss (torch.Tensor): Classification loss for the batch.
         loss (torch.Tensor): Total loss for the batch.
 
     Returns:
@@ -459,7 +457,6 @@ def accumulate_step_outputs(
     step_outputs['reg_loss'] = torch.cat((step_outputs['reg_loss'], reg_loss.unsqueeze(0) * len(names_batched)), dim=0)
     step_outputs['rank_loss'] = torch.cat((step_outputs['rank_loss'],
                                            rank_loss.unsqueeze(0) * len(names_batched)), dim=0)
-    step_outputs['cls_loss'] = torch.cat((step_outputs['cls_loss'], cls_loss.unsqueeze(0) * len(names_batched)), dim=0)
     step_outputs['loss'] = torch.cat((step_outputs['loss'], loss.unsqueeze(0) * len(names_batched)), dim=0)
 
     return step_outputs

@@ -264,7 +264,8 @@ class VCMeshDataset(Dataset):
         root_dir: str,
         split: str = 'train',
         normalize_score: bool = False,
-        seed: int = 2
+        seed: int = 2,
+        **kwargs: Any
     ) -> None:
         self.root_dir = root_dir
         self.normalize_score = normalize_score
