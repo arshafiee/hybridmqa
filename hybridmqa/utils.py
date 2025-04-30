@@ -864,9 +864,33 @@ def apply_hflip_and_vflip(
     return projections, bg_mask
 
 
-def interpolate_vertex(vertex_indices, uv_indices, bary_coords, vertices, uvs, normals) -> tuple:
+def interpolate_vertex(
+    vertex_indices: np.ndarray,
+    uv_indices: np.ndarray,
+    bary_coords: Tuple[float, float, float],
+    vertices: np.ndarray,
+    uvs: np.ndarray,
+    normals: np.ndarray
+) -> Tuple[np.ndarray, np.ndarray, Optional[np.ndarray]]:
     """
-    Interpolate a vertex position, UV coordinates and normal using barycentric coordinates.
+    Interpolates vertex position, UV coordinates, and normal vector using barycentric coordinates.
+
+    Args:
+        vertex_indices (np.ndarray): Indices of the three vertices of a face.
+        uv_indices (np.ndarray): Indices of the UV coordinates.
+        bary_coords (Tuple[float, float, float]): Barycentric weights (u, v, w) for interpolation.
+        vertices (np.ndarray): Array of shape [num_vertices, 3] containing 3D vertex positions.
+        uvs (np.ndarray): Array of shape [num_uvs, 2] containing UV coordinates.
+        normals (np.ndarray): Array of shape [num_vertices, 3] containing normal vectors for vertices.
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray, Optional[np.ndarray]]:
+            - Interpolated 3D vertex position (np.ndarray of shape [3]).
+            - Interpolated 2D UV coordinate (np.ndarray of shape [2]).
+            - Interpolated normal vector (np.ndarray of shape [3]) if `normals` is provided, otherwise None.
+
+    Note:
+        This function assumes that the normal indices are aligned with the vertex indices.
     """
 
     normal_indices = vertex_indices  # Assuming the normal indices are the same as the vertex indices
@@ -889,9 +913,16 @@ def interpolate_vertex(vertex_indices, uv_indices, bary_coords, vertices, uvs, n
     return interpolated_pos, interpolated_uv, interpolated_normal
 
 
-def generate_barycentric_coords(num_samples=50) -> list:
+def generate_barycentric_coords(num_samples: int = 50) -> List[Tuple[float, float, float]]:
     """
     Generate uniform barycentric coordinates.
+
+    Args:
+        num_samples (int, optional): Number of barycentric coordinate samples to generate. Defaults to 50.
+
+    Returns:
+        List[Tuple[float, float, float]]: A list of triplets (u, v, w), each representing a set of
+        barycentric coordinates satisfying u + v + w = 1 and u, v, w ≥ 0.
     """
     coords = []
     for _ in range(num_samples):
@@ -903,10 +934,41 @@ def generate_barycentric_coords(num_samples=50) -> list:
     return coords
 
 
-def geo_map_interp(vertices, uvs, normals, face_verts, face_uvs, H=256, W=256, num_samples=50) -> tuple:
+def geo_map_interp(
+    vertices: np.ndarray,
+    uvs: np.ndarray,
+    normals: Optional[np.ndarray],
+    face_verts: np.ndarray,
+    face_uvs: np.ndarray,
+    H: int = 256,
+    W: int = 256,
+    num_samples: int = 50
+) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     """
     Project 3D vertex positions to a 2D feature map using UV mapping with reverse bilinear interpolation.
     Adjusted to directly account for the exact off-grid position of UV coordinates.
+
+    Args:
+        vertices (np.ndarray): Array of shape [num_vertices, 3] containing 3D vertex positions.
+        uvs (np.ndarray): Array of shape [num_uvs, 2] containing UV coordinates.
+        normals (Optional[np.ndarray]): Array of shape [num_vertices, 3] containing vertex normals.
+                                        If None, normal projection is skipped.
+        face_verts (np.ndarray): Array of shape [num_faces, 3] with vertex indices per face.
+        face_uvs (np.ndarray): Array of shape [num_faces, 3] with UV indices per face.
+        H (int, optional): Height of the output spatial map. Defaults to 256.
+        W (int, optional): Width of the output spatial map. Defaults to 256.
+        num_samples (int, optional): Number of barycentric samples per face. Defaults to 50.
+
+    Returns:
+        tuple[np.ndarray, Optional[np.ndarray]]:
+            - vertex_map: Array of shape [H, W, 3] representing interpolated 3D positions per pixel.
+            - normal_map: Array of shape [H, W, 3] representing interpolated normals per pixel,
+                          or None if `normals` is not provided.
+
+    Note:
+        The projection assumes UV coordinates are in [0, 1] and maps them to image coordinates
+        with origin at the top-left corner.
+
     """
     vertex_map = np.zeros((H, W, 3))  # Assuming 3D positions (x, y, z)
     weight_map = np.zeros((H, W))  # To keep track of accumulated weights for normalization
@@ -923,7 +985,7 @@ def geo_map_interp(vertices, uvs, normals, face_verts, face_uvs, H=256, W=256, n
             # Calculate precise floating-point UV coordinates
             # u, v: [0, 0] is the bottom-left corner
             # x, y: [0, 0] is the top-left corner
-            x, y = interpolated_uv[0] * W, (1 - interpolated_uv[1]) * H  # Adjust for coordinate system if necessary
+            x, y = interpolated_uv[0] * W, (1 - interpolated_uv[1]) * H
 
             x = max(0, min(W - 1, x))
             y = max(0, min(H - 1, y))

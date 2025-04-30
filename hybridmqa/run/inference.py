@@ -1,4 +1,5 @@
 import argparse
+from typing import Dict, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -9,7 +10,18 @@ from hybridmqa.model.archit import GNN, BaseEncoder, HybridMQA, QualityEncoder
 from hybridmqa.utils import geo_map_interp, send_dict_tensors_to_device
 
 
-def compute_normal_and_vertex_map(mesh: Meshes):
+def compute_normal_and_vertex_map(mesh: Meshes) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Computes the 2D vertex position map and normal map from a given 3D mesh using UV mapping.
+
+    Args:
+        mesh (Meshes): A PyTorch3D `Meshes` object containing a single mesh instance.
+
+    Returns:
+        Tuple[torch.Tensor, torch.Tensor]:
+            - vertex_map: Tensor of shape [H, W, 3] representing 3D vertex positions in 2D UV space.
+            - normal_map: Tensor of shape [H, W, 3] representing surface normals in 2D UV space.
+    """
     vertices, face_verts = mesh.get_mesh_verts_faces(0)
     uvs = mesh.textures.verts_uvs_list()[0]
     face_uvs = mesh.textures.faces_uvs_list()[0]
@@ -43,7 +55,21 @@ def compute_normal_and_vertex_map(mesh: Meshes):
     return vertex_map, normal_map
 
 
-def load_meshes_and_2D_maps(ref_path: str, dist_path: str, vcmesh: bool = False):
+def load_meshes_and_2D_maps(ref_path: str, dist_path: str, vcmesh: bool = False) -> Dict[str, torch.Tensor | Meshes]:
+    """
+    Loads reference and distorted meshes and computes their 2D vertex and normal maps.
+
+    Args:
+        ref_path (str): Path to the reference mesh (.obj file).
+        dist_path (str): Path to the distorted mesh (.obj file).
+        vcmesh (bool, optional): If True, treats input meshes as vertex-color meshes. Defaults to False.
+
+    Returns:
+        Dict[str, torch.Tensor | Meshes]: A dictionary with the following keys:
+            - 'mesh_data': A PyTorch3D `Meshes` object containing the loaded meshes.
+            - 'input_concat': A tensor of shape [2, C, H, W] containing the stacked input maps
+                              for reference and distorted meshes, or dummy zeros if `vcmesh` is True.
+    """
     # load obj file with pytorch3d
     mesh_data = load_objs_as_meshes([ref_path, dist_path], vcmesh=vcmesh)
 
@@ -82,6 +108,17 @@ def load_meshes_and_2D_maps(ref_path: str, dist_path: str, vcmesh: bool = False)
 
 
 def build_model(ckpt_path: str, device: torch.device, vcmesh: bool = False) -> HybridMQA:
+    """
+    Builds and initializes the HybridMQA model for mesh quality assessment.
+
+    Args:
+        ckpt_path (str): Path to the trained model checkpoint (.pth file).
+        device (torch.device): Target device for model inference (e.g., torch.device("cuda")).
+        vcmesh (bool, optional): If True, the model is configured for vertex-color meshes. Defaults to False.
+
+    Returns:
+        HybridMQA: The fully constructed and checkpoint-loaded model ready for inference.
+    """
     # create Base Encoder
     base_enc = BaseEncoder(hidden_channels=32, out_channels=16).to(device)
     # create GNN
@@ -115,7 +152,7 @@ def main():
     data_sample = send_dict_tensors_to_device(dict_of_tns=data_sample, device=device)
 
     # create an instance of the model
-    model = build_model(args.ckpt_path, device)
+    model = build_model(args.ckpt_path, device, vcmesh=args.vcmesh)
 
     with torch.no_grad():
         pred_quality = model(data_sample)
