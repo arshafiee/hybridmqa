@@ -864,6 +864,98 @@ def apply_hflip_and_vflip(
     return projections, bg_mask
 
 
+def interpolate_vertex(vertex_indices, uv_indices, bary_coords, vertices, uvs, normals) -> tuple:
+    """
+    Interpolate a vertex position, UV coordinates and normal using barycentric coordinates.
+    """
+
+    normal_indices = vertex_indices  # Assuming the normal indices are the same as the vertex indices
+    # vertex_indices = [index - 1 for index, _, _ in face]
+    # uv_indices = [uv_index - 1 for _, uv_index, _ in face]
+    # normal_indices = [normal_index - 1 for _, _, normal_index in face] if normals is not None else None
+
+    # Interpolating vertex positions
+    interpolated_pos = sum(vertices[idx] * bary_coords[i]
+                           for i, idx in enumerate(vertex_indices))
+
+    # Interpolating UV coordinates
+    interpolated_uv = sum(uvs[idx] * bary_coords[i]
+                          for i, idx in enumerate(uv_indices))
+
+    # Interpolating normals
+    interpolated_normal = sum(normals[idx] * bary_coords[i]
+                              for i, idx in enumerate(normal_indices)) if normals is not None else None
+
+    return interpolated_pos, interpolated_uv, interpolated_normal
+
+
+def generate_barycentric_coords(num_samples=50) -> list:
+    """
+    Generate uniform barycentric coordinates.
+    """
+    coords = []
+    for _ in range(num_samples):
+        r1, r2 = np.random.random(2)
+        u = 1 - np.sqrt(r1)
+        v = np.sqrt(r1) * (1 - r2)
+        w = 1 - u - v
+        coords.append((u, v, w))
+    return coords
+
+
+def geo_map_interp(vertices, uvs, normals, face_verts, face_uvs, H=256, W=256, num_samples=50) -> tuple:
+    """
+    Project 3D vertex positions to a 2D feature map using UV mapping with reverse bilinear interpolation.
+    Adjusted to directly account for the exact off-grid position of UV coordinates.
+    """
+    vertex_map = np.zeros((H, W, 3))  # Assuming 3D positions (x, y, z)
+    weight_map = np.zeros((H, W))  # To keep track of accumulated weights for normalization
+
+    normal_map = np.zeros((H, W, 3)) if normals is not None else None  # Assuming 3D normals (x, y, z)
+
+    for verts_id, uvs_id in zip(face_verts, face_uvs):
+        bary_coords_list = generate_barycentric_coords(num_samples=num_samples)
+        for bary_coords in bary_coords_list:
+            interpolated_vertex, interpolated_uv, interpolated_normal = interpolate_vertex(verts_id, uvs_id,
+                                                                                           bary_coords,
+                                                                                           vertices, uvs, normals)
+
+            # Calculate precise floating-point UV coordinates
+            # u, v: [0, 0] is the bottom-left corner
+            # x, y: [0, 0] is the top-left corner
+            x, y = interpolated_uv[0] * W, (1 - interpolated_uv[1]) * H  # Adjust for coordinate system if necessary
+
+            x = max(0, min(W - 1, x))
+            y = max(0, min(H - 1, y))
+            # Identify the four nearest grid points surrounding the precise UV coordinate
+            x0, y0 = np.floor(x), np.floor(y)  # Bottom-left
+            x1, y1 = x0 + 1, y0 + 1  # Top-right
+
+            # Distribute to the four nearest grid points
+            for (gx, gy) in [(x0, y0), (x0, y1), (x1, y0), (x1, y1)]:
+                # Check bounds
+                if 0 <= gx < W and 0 <= gy < H:
+                    # Calculate weight based on inverse distance to the off-grid point
+                    dist_x = 1 - abs(gx - x)
+                    dist_y = 1 - abs(gy - y)
+                    weight = dist_x * dist_y
+
+                    ix, iy = int(gx), int(gy)
+                    vertex_map[iy, ix, :] += interpolated_vertex * weight
+                    if normals is not None:
+                        normal_map[iy, ix, :] += interpolated_normal * weight
+                    weight_map[iy, ix] += weight
+
+    # Normalize by accumulated weights
+    nonzero = weight_map > 0
+    for i in range(3):
+        vertex_map[:, :, i][nonzero] /= weight_map[nonzero]
+        if normals is not None:
+            normal_map[:, :, i][nonzero] /= weight_map[nonzero]
+
+    return vertex_map, normal_map
+
+
 class RankLoss(torch.nn.Module):
     """
     Rank-based loss function that penalizes incorrect ordering of prediction pairs.
