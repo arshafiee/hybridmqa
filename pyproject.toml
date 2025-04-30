@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hybridmqa"
+version = "0.1.0"
+description = "A package for hybrid 3D mesh quality assessment"
+authors = [{name = "Armin Shafiee Sarvestani", email = "a5shafie@uwaterloo.ca"},
+           {name = "Sheyang Tang", email = "sheyang.tang@uwaterloo.ca"}]
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "torch==2.1.2",
+    "torchvision==0.16.2",
+    "torch_geometric==2.4.0",
+    "numpy==1.26.3",
+    "pandas==2.2.0",
+    "scikit-learn==1.4.0",
+    "scikit-image==0.22.0",
+    "matplotlib==3.8.2",
+    "tqdm==4.66.1",
+    "wandb==0.16.3",
+    "openpyxl==3.1.5"
+]

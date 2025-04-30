@@ -4,3 +4,4 @@ venv/
 .vscode/
 *.egg-info/
 __pycache__/
+tmp/
