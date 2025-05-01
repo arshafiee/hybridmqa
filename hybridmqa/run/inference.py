@@ -1,6 +1,7 @@
 import argparse
 from typing import Dict, Tuple
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 from pytorch3d.structures import Meshes
@@ -34,8 +35,12 @@ def compute_normal_and_vertex_map(mesh: Meshes) -> Tuple[torch.Tensor, torch.Ten
     face_verts = face_verts.cpu().numpy()
     face_uvs = face_uvs.cpu().numpy()
 
-    # TODO: check UV values to be in the range [0, 1], o.w. raise an error with proper message
-    # TODO: check the range of vertex_map and normal_map values
+    # check UV values to be in the range [0, 1]
+    assert np.all((uvs >= -0.02) & (uvs <= 1.02)), \
+        f"UV coordinates must be in [0, 1] (with ±0.02 tolerance), " \
+        f"but got values in range [{uvs.min():.4f}, {uvs.max():.4f}]. " \
+        f"This will lead to artifacts in the normal/vertex map and rendered viewpoints. " \
+        f"If you're aware of this and want to proceed regardless, you may comment out this assertion."
     vertex_map, normal_map = geo_map_interp(
         vertices,
         uvs,
@@ -48,9 +53,6 @@ def compute_normal_and_vertex_map(mesh: Meshes) -> Tuple[torch.Tensor, torch.Ten
     )
     vertex_map = torch.from_numpy(vertex_map).float()
     normal_map = torch.from_numpy(normal_map).float()
-    # # assert vertex_map in range [-1, 1]
-    # assert np.all(vertex_map >= -1.1) and np.all(vertex_map <= 1.1), \
-    #     f'{vertex_map.min()}, {vertex_map.max()}'
 
     return vertex_map, normal_map
 
@@ -83,7 +85,6 @@ def load_meshes_and_2D_maps(ref_path: str, dist_path: str, vcmesh: bool = False)
 
     if not vcmesh:
         # load texture maps
-        # TODO: check if the texture maps exist
         texture_ref = mesh_data.textures._maps_list[0].clone().detach()
         texture_ref = F.interpolate(texture_ref.permute(2, 0, 1).unsqueeze(0), size=(256, 256), mode='bilinear',
                                     align_corners=False).squeeze(0).permute(1, 2, 0)
