@@ -433,8 +433,8 @@ if __name__ == '__main__':
     # Dataloader Configurations
     parser.add_argument('--num_work', type=int, default=0, help='num workers in DataLoaders')
     parser.add_argument('--pin_mem', action='store_true', help='pin_memory in DataLoaders')
-    parser.add_argument('--shuffle_seed', type=int, default=1, help='random seed for shuffling the dataset')
-    parser.add_argument('--kfold_seed', type=int, default=7, help='random seed for kfold split')
+    parser.add_argument('--shuffle_seed', type=int, default=1, help='seed for kfold split')
+    parser.add_argument('--kfold_seed', type=int, default=7, help='random seed for shuffling the dataset')
     # model settings
     parser.add_argument('--num_proj', type=int, default=2, help='Number of projections for rendering in training')
     parser.add_argument('--gnn_arch', type=str, default='graph_2', help='GNN architecture: type_layers_[heads]')
