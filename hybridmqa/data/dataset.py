@@ -6,7 +6,6 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 from pytorch3d.structures import join_meshes_as_batch
-from skimage import io
 from sklearn.model_selection import KFold, train_test_split
 from torch.utils.data import Dataset
 
@@ -96,7 +95,14 @@ class TMQADataset(Dataset):
             score = 1.0 - (score / 10.0)
 
         # load obj files
-        mesh_data = load_objs_as_meshes([ref_filename + ".obj", dist_filename + ".obj"], load_tensor=True)
+        # NOTE: You can set load_tensor to True to load tensors instead of .obj files for faster loading.
+        #       This only works if you have already saved the tensors using save_tensor=True.
+        #       Refer to Usage section of REAMDE for more details.
+        mesh_data = load_objs_as_meshes(
+            [ref_filename + ".obj", dist_filename + ".obj"],
+            load_tensor=False,
+            save_tensor=False
+        )
         # normalize vertex positions to be in the range [-1, 1]
         bbox = mesh_data.get_bounding_boxes()
         max_dim, _ = torch.max(bbox[:, :, 1] - bbox[:, :, 0], dim=-1)
@@ -104,10 +110,10 @@ class TMQADataset(Dataset):
         mesh_data._verts_list[1] = 2 * (mesh_data._verts_list[1] - (bbox[1, :, 0] / 2 + bbox[1, :, 1] / 2)) / max_dim[1]
 
         # Load image, normal map, and vertex map
-        texture_ref = torch.from_numpy(io.imread(ref_filename + ".jpg")).float() / 255.0
+        texture_ref = mesh_data.textures._maps_list[0].clone().detach()
         texture_ref = F.interpolate(texture_ref.permute(2, 0, 1).unsqueeze(0), size=(256, 256), mode='bilinear',
                                     align_corners=False).squeeze(0).permute(1, 2, 0)
-        texture_dist = torch.from_numpy(io.imread(dist_filename + ".jpg")).float() / 255.0
+        texture_dist = mesh_data.textures._maps_list[1].clone().detach()
         texture_dist = F.interpolate(texture_dist.permute(2, 0, 1).unsqueeze(0), size=(256, 256), mode='bilinear',
                                      align_corners=False).squeeze(0).permute(1, 2, 0)
         vertex_map_ref = torch.from_numpy(np.load(ref_filename + "_interp_norm_vertex_map.npy")).float()
@@ -214,7 +220,10 @@ class YN2023Dataset(Dataset):
             score = 1.0 - (score - 1.0) / 4.0
 
         # load obj file with pytorch3d
-        mesh_data = load_objs_as_meshes([ref_filename, dist_filename], load_tensor=True)
+        # NOTE: You can set load_tensor to True to load tensors instead of .obj files for faster loading.
+        #       This only works if you have already saved the tensors using save_tensor=True.
+        #       Refer to Usage section of REAMDE for more details.
+        mesh_data = load_objs_as_meshes([ref_filename, dist_filename], load_tensor=False, save_tensor=False)
         # normalize vertex positions to be in the range [-1, 1]
         bbox = mesh_data.get_bounding_boxes()
         max_dim, _ = torch.max(bbox[:, :, 1] - bbox[:, :, 0], dim=-1)
@@ -309,7 +318,15 @@ class VCMeshDataset(Dataset):
             score = 1.0 - (score - 1.0) / 4.0
 
         # load obj file with pytorch3d
-        mesh_data = load_objs_as_meshes([ref_filename, dist_filename], load_tensor=True, vcmesh=True)
+        # NOTE: You can set load_tensor to True to load tensors instead of .obj files for faster loading.
+        #       This only works if you have already saved the tensors using save_tensor=True.
+        #       Refer to Usage section of REAMDE for more details.
+        mesh_data = load_objs_as_meshes(
+            [ref_filename, dist_filename],
+            load_tensor=False,
+            vcmesh=True,
+            save_tensor=False
+        )
         # normalize vertex positions to be in the range [-1, 1]
         bbox = mesh_data.get_bounding_boxes()
         max_dim, _ = torch.max(bbox[:, :, 1] - bbox[:, :, 0], dim=-1)
@@ -427,7 +444,14 @@ class TSMDDataset(Dataset):
             score = 1.0 - (score - 1.0) / 4.0
 
         # load obj file
-        mesh_data = load_objs_as_meshes([ref_filename + ".obj", dist_filename + ".obj"], load_tensor=True)
+        # NOTE: You can set load_tensor to True to load tensors instead of .obj files for faster loading.
+        #       This only works if you have already saved the tensors using save_tensor=True.
+        #       Refer to Usage section of REAMDE for more details.
+        mesh_data = load_objs_as_meshes(
+            [ref_filename + ".obj", dist_filename + ".obj"],
+            load_tensor=False,
+            save_tensor=False
+        )
 
         # fix uvs for some samples
         if sample['source'] in self.fix_uv_list:
