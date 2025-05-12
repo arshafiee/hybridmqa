@@ -116,11 +116,11 @@ body {
 .publication-body img {
 }
 
-.results-carousel {
+.first-carousel {
   overflow: hidden;
 }
 
-.results-carousel .item {
+.first-carousel .item {
   margin: 5px;
   overflow: hidden;
   padding: 20px;
@@ -130,7 +130,7 @@ body {
   text-align: center;
 }
 
-.results-carousel .item img {
+.first-carousel .item img {
   max-width: 100%;
   max-height: 400px;
   width: auto;
@@ -138,12 +138,42 @@ body {
   object-fit: contain;
 }
 
-.slider-navigation-previous { 
-    left: 20%; /* Move left button closer */
+.second-carousel {
+  overflow: hidden;
 }
 
-.slider-navigation-next { 
-    right: 20%; /* Move right button closer */
+.second-carousel .item {
+  margin: 5px;
+  overflow: hidden;
+  padding: 20px;
+  font-size: 0;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.second-carousel .item img {
+  max-width: 100%;
+  max-height: 300px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* first slider: closer to the edges of carousel #1 */
+.first-carousel .slider-navigation-previous {
+  left: 220px;
+}
+.first-carousel .slider-navigation-next {
+  right: 220px;
+}
+
+/* second slider: push arrows just outside of images for #2 */
+.second-carousel .slider-navigation-previous {
+  left: 30px;   /* negative moves it outside */
+}
+.second-carousel .slider-navigation-next {
+  right: 30px;
 }
 
 
