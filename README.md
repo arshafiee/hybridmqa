@@ -58,6 +58,8 @@ You should raise `--vcmesh` flag if the input meshes are vertex-color meshes.
 
 ### Training & Generalization Test
 
+Please refer to [`datasets/README.md`](datasets/README.md) for detailed instructions on dataset preparation and dataset directory structuring.
+
 Before beginning the training/testing process, you need to prepare normal and vertex maps for all the meshes of the
 dataset:
 ```bash
@@ -112,6 +114,7 @@ bash scripts/test.sh TSMD /path/to/TSMD/dataset TMQA /path/to/checkpoint.pth
 HybridMQA/
 │
 ├── scripts/              # Training and test scripts
+├── datasets/             # datasets folder - containing README for dataset preparations
 ├── hybridmqa/            # Core HybridMQA model
     ├── data/             # dataset classes and data io utils
     ├── model/            # HybridMQA architecture classes
