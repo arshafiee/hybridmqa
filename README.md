@@ -31,7 +31,7 @@ pip install -e .
 
 Next, ensure that [PyTorch3D==0.7.5](https://github.com/facebookresearch/pytorch3d) is installed properly with CUDA support. Follow their official [installation guide](https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md) for setup or run:
 ```bash
-pip3 install "git+https://github.com/facebookresearch/pytorch3d.git@v0.7.5"
+MAX_JOBS=4 pip3 install "git+https://github.com/facebookresearch/pytorch3d.git@v0.7.5"
 ```
 
 ---
