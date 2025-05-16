@@ -95,7 +95,7 @@ to load these `.pt` files instead of `.obj` files, significantly reducing loadin
 Finally, to test generalization of HybridMQA on a dataset run:
 
 ```bash
-bash  test_dataset_name /path/to/dataset/root/dir train_dataset_name /path/to/checkpoint
+bash  scripts/test.sh test_dataset_name /path/to/dataset/root/dir train_dataset_name /path/to/checkpoint
 ```
 `train_dataset_name` argument is included only for logging purposes.
 
@@ -120,7 +120,7 @@ HybridMQA/
     ├── model/            # HybridMQA architecture classes
     ├── run/              # training, testing, and inference implementations
 ├── checkpoints/          # Model checkpoints
-├── docs/                 # Project webpage and logo
+├── docs/                 # Project webpage
 ├── LICENSE
 ├── pyproject.toml
 └── README.md

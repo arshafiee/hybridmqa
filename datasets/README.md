@@ -99,7 +99,7 @@ VCMesh/                             # Root dir of the dataset
     ├── Chameleon/
     ├── Fish/
     └── Samurai/           
-└── Per_Stimulus_MOS_and_MLE.xlsx
+└── Per_Stimulus_MOS_and_MLE.csv
 ```
 ## Notes
 Please note that:
