@@ -63,7 +63,7 @@ Please refer to [`datasets/README.md`](datasets/README.md) for detailed instruct
 Before beginning the training/testing process, you need to prepare normal and vertex maps for all the meshes of the
 dataset:
 ```bash
-python3 scripts/prepare_normal_vertex_maps.py /path/to/dataset/root/dir
+python3 scripts/prepare_normal_vertex_maps.py --root_dir /path/to/dataset/root/dir
 ```
 This will:
 - Recursively search the dataset directory for all `.obj` files.
