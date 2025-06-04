@@ -29,9 +29,9 @@ source venv/bin/activate
 pip install -e .
 ```
 
-Next, ensure that [PyTorch3D==0.7.5](https://github.com/facebookresearch/pytorch3d) is installed properly with CUDA support. Follow their official [installation guide](https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md) for setup or run:
+Next, ensure that [PyTorch3D==0.7.5](https://github.com/facebookresearch/pytorch3d) is installed properly with CUDA support. We recommend using version `0.7.5` for best compatibility, but newer versions should also work. Follow their official [installation guide](https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md) for setup or run:
 ```bash
-MAX_JOBS=4 pip3 install "git+https://github.com/facebookresearch/pytorch3d.git@v0.7.5"
+MAX_JOBS=4 pip3 install --no-build-isolation "git+https://github.com/facebookresearch/pytorch3d.git@v0.7.5"
 ```
 
 ---
