@@ -38,6 +38,23 @@ MAX_JOBS=4 pip3 install "git+https://github.com/facebookresearch/pytorch3d.git@v
 
 ## Usage
 
+### Pretrained Weights
+
+Pretrained weights are available on Hugging Face:
+
+**[➡ Download from Hugging Face](https://huggingface.co/arshafiee/hybridmqa-checkpoint)**
+
+You can also download the weights programmatically using the Hugging Face Hub API:
+
+```python
+from huggingface_hub import hf_hub_download
+
+ckpt_path = hf_hub_download(
+    repo_id="arshafiee/hybridmqa-checkpoint",
+    filename="model.pth"
+)
+```
+
 ### Inference
 
 To run quality prediction on a pair of reference and distorted 3D meshes:
@@ -119,7 +136,6 @@ HybridMQA/
     ├── data/             # dataset classes and data io utils
     ├── model/            # HybridMQA architecture classes
     ├── run/              # training, testing, and inference implementations
-├── checkpoints/          # Model checkpoints
 ├── docs/                 # Project webpage
 ├── LICENSE
 ├── pyproject.toml
