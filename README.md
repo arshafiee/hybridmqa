@@ -51,7 +51,7 @@ from huggingface_hub import hf_hub_download
 
 ckpt_path = hf_hub_download(
     repo_id="arshafiee/hybridmqa-checkpoint",
-    filename="model.pth"
+    filename="<checkpoint_name>.pth"
 )
 ```
 
