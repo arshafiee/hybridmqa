@@ -149,11 +149,12 @@ HybridMQA/
 If you use this work in your research, please cite:
 
 ```bibtex
-@article{sarvestani2024hybridmqa,
-    title={HybridMQA: Exploring Geometry-Texture Interactions for Colored Mesh Quality Assessment},
-    author={Sarvestani, Armin Shafiee and Tang, Sheyang and Wang, Zhou},
-    journal={arXiv preprint arXiv:2412.01986},
-    year={2024}
+@InProceedings{sarvestani2025hybridmqa,
+    author    = {Sarvestani, Armin Shafiee and Tang, Sheyang and Wang, Zhou},
+    title     = {HybridMQA: Exploring Geometry-Texture Interactions for Colored Mesh Quality Assessment},
+    booktitle = {Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR)},
+    year      = {2025},
+    pages     = {21414-21424}
 }
 ```
 
